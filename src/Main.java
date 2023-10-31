@@ -10,7 +10,6 @@ public class Main {
         Task task3 = manager.getTask(taskId1);
         assert(task3.getId() == task1.getId());
         System.out.println("all good");
-        //System.exit(1);
 
         Task task2 = new Task("Task 2", "Task 2 description", "IN_PROGRESS");
 

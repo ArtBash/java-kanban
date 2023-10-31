@@ -21,8 +21,6 @@ public interface ITaskManager {
 
     int addNewSubTask(SubTask subTask);
 
-    void updateEpicStatus(Epic epic);
-
     void updateTask(Task task);
 
     void updateEpic(Epic epic);
@@ -34,5 +32,9 @@ public interface ITaskManager {
     boolean deleteSubTask(int id);
 
     boolean deleteEpic(int id);
+
+    boolean removeAllTasks();
+    boolean removeAllEpics();
+    boolean removeAllSubTasks();
 
 }
