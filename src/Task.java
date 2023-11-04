@@ -2,9 +2,9 @@ import java.util.Objects;
 
 public class Task {
     protected String name;
-    String description;
-    int id;
-    String status;
+    protected String description;
+    protected int id;
+    protected String status;
 
     public Task(String name, String description, String status, int id) {
         this.name = name;

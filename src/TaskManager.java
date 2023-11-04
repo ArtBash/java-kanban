@@ -89,12 +89,28 @@ public class TaskManager implements ITaskManager {
 
     @Override
     public void updateEpic(Epic epic) {
-        epics.replace(epic.getId(), epic);
+        if(epics.containsKey(epic.getId())) {
+            Integer id = epic.getId();
+            epics.get(id).updateSubTaskIds(epic.getSubTaskIds());
+            epics.get(id).setStatus(epic.getStatus());
+            epics.get(id).setName(epic.getName());
+            epics.get(id).setDescription(epic.getDescription());
+        } else {
+            System.out.println("No epic with such id");
+        }
     }
 
     @Override
     public void updateSubTask(SubTask subTask) {
-        subTasks.replace(subTask.getId(), subTask);
+        Integer id = subTask.getId();
+        if(subTasks.containsKey(id)) {
+            if(subTask.getEpicId() == subTasks.get(id).getEpicId()) {
+                subTasks.replace(id, subTask);
+                updateEpicStatus(epics.get(subTask.getEpicId()));
+            }
+        } else {
+            System.out.println("No subtask with such id");
+        }
     }
 
     private void updateEpicStatus(Epic epicItem) {
@@ -120,7 +136,8 @@ public class TaskManager implements ITaskManager {
 
     @Override
     public boolean deleteTask(int id) {
-        if(tasks.remove(id).equals(null)) {
+        Integer itemId = id;
+        if(tasks.remove(itemId).equals(null)) {
             return false;
         } else {
             return true;
@@ -129,56 +146,44 @@ public class TaskManager implements ITaskManager {
 
     @Override
     public boolean deleteSubTask(int id) {
-        if ((subTasks.remove(id)).equals(null)) {
-            System.out.println("No subtask with id: " + id);
+        Integer itemId = id;
+        if ((subTasks.remove(itemId)).equals(null)) {
+            System.out.println("No subtask with id: " + itemId);
             return false;
         } else {
-            epic.removeSubTaskId(id);
-            updateEpicStatus(epics.get(id));
+            epic.removeSubTaskId(itemId);
+            updateEpicStatus(epics.get(itemId));
             return true;
         }
     }
 
     @Override
     public boolean deleteEpic(int id) {
-        if(epics.remove(id).equals(null)) {
-            System.out.println("No epic with id: " + id);
+        Integer itemId = id;
+        if(epics.remove(itemId).equals(null)) {
+            System.out.println("No epic with id: " + itemId);
             return false;
         } else {
-            ArrayList<SubTask> subList = new ArrayList<>(subTasks.values());
-            for(SubTask targetTask : subList) {
-                if(targetTask.getEpicId() == id) {
-                    subTasks.remove(targetTask.getId());
-                }
-            }
+            epics.remove(itemId);
             return true;
         }
     }
     @Override
-    public boolean removeAllTasks() {
+    public void removeAllTasks() {
         tasks.clear();
-        if(tasks.isEmpty()) {
-            return true;
-        } else {
-            return false;
-        }
     }
     @Override
-    public boolean removeAllEpics() {
+    public void removeAllEpics() {
+        removeAllSubTasks();
         epics.clear();
-        if(epics.isEmpty()) {
-            return true;
-        } else {
-            return false;
-        }
+
     }
     @Override
-    public boolean removeAllSubTasks() {
+    public void removeAllSubTasks() {
         subTasks.clear();
-        if(subTasks.isEmpty()) {
-            return true;
-        } else {
-            return false;
+        ArrayList<Epic> listOfEpics = new ArrayList<>(epics.values());
+        for(Epic item : listOfEpics){
+            item.removeSubTasksIds();
         }
     }
 }

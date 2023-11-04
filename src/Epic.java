@@ -25,8 +25,9 @@ public class Epic extends Task {
         return new ArrayList<>(subTaskIds);
     }
 
-    public void clearSubTaskIds() {
+    public void updateSubTaskIds(ArrayList<Integer> newSubTaskIds) {
         subTaskIds.clear();
+        subTaskIds = newSubTaskIds;
     }
 
     public void removeSubTaskId(int id) {
@@ -35,6 +36,10 @@ public class Epic extends Task {
                 subTaskIds.remove(item);
             }
         }
+    }
+
+    public void removeSubTasksIds() {
+        subTaskIds.clear();
     }
 
     @Override

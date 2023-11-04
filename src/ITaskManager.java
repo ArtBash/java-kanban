@@ -33,8 +33,8 @@ public interface ITaskManager {
 
     boolean deleteEpic(int id);
 
-    boolean removeAllTasks();
-    boolean removeAllEpics();
-    boolean removeAllSubTasks();
+    void removeAllTasks();
+    void removeAllEpics();
+    void removeAllSubTasks();
 
 }
