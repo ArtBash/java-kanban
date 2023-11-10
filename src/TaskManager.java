@@ -91,8 +91,6 @@ public class TaskManager implements ITaskManager {
     public void updateEpic(Epic epic) {
         if(epics.containsKey(epic.getId())) {
             Integer id = epic.getId();
-            epics.get(id).updateSubTaskIds(epic.getSubTaskIds());
-            epics.get(id).setStatus(epic.getStatus());
             epics.get(id).setName(epic.getName());
             epics.get(id).setDescription(epic.getDescription());
         } else {
@@ -164,6 +162,10 @@ public class TaskManager implements ITaskManager {
             System.out.println("No epic with id: " + itemId);
             return false;
         } else {
+            final Epic epic = epics.get(Integer.valueOf(id));
+            for(Integer epicsSubTask : epic.getSubTaskIds()) {
+                subTasks.remove(epicsSubTask);
+            }
             epics.remove(itemId);
             return true;
         }
@@ -184,6 +186,7 @@ public class TaskManager implements ITaskManager {
         ArrayList<Epic> listOfEpics = new ArrayList<>(epics.values());
         for(Epic item : listOfEpics){
             item.removeSubTasksIds();
+            updateEpicStatus(item);
         }
     }
 }
