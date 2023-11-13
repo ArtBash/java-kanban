@@ -158,11 +158,11 @@ public class TaskManager implements ITaskManager {
     @Override
     public boolean deleteEpic(int id) {
         Integer itemId = id;
+        final Epic epic = epics.get(Integer.valueOf(id));
         if(epics.remove(itemId).equals(null)) {
             System.out.println("No epic with id: " + itemId);
             return false;
         } else {
-            final Epic epic = epics.get(Integer.valueOf(id));
             for(Integer epicsSubTask : epic.getSubTaskIds()) {
                 subTasks.remove(epicsSubTask);
             }
