@@ -1,19 +1,21 @@
+package tasks;
+
 import java.util.Objects;
 
 public class Task {
     protected String name;
     protected String description;
     protected int id;
-    protected String status;
+    protected TaskStatus status;
 
-    public Task(String name, String description, String status, int id) {
+    public Task(String name, String description, TaskStatus status, int id) {
         this.name = name;
         this.description = description;
         this.id = id;
         this.status = status;
     }
 
-    public Task(String name, String description, String status) {
+    public Task(String name, String description, TaskStatus status) {
         this.name = name;
         this.description = description;
         this.status = status;
@@ -47,11 +49,11 @@ public class Task {
         this.id = id;
     }
 
-    public String getStatus() {
+    public TaskStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(TaskStatus status) {
         this.status = status;
     }
 
@@ -70,7 +72,7 @@ public class Task {
 
     @Override
     public String toString() {
-        return "Task{" +
+        return "tasks.Task{" +
                 "name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", id=" + id +

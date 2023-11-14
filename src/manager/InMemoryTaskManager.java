@@ -1,10 +1,20 @@
+package manager;
+
+import tasks.Epic;
+import tasks.SubTask;
+import tasks.Task;
+import tasks.TaskStatus;
+
 import java.util.*;
 
-public class TaskManager implements ITaskManager {
+import static tasks.TaskStatus.*;
+
+public class InMemoryTaskManager implements TaskManager {
     HashMap<Integer, Task> tasks = new HashMap<>();
     HashMap<Integer, SubTask> subTasks = new HashMap<>();
     HashMap<Integer, Epic> epics = new HashMap<>();
     private int generatorId = 0;
+    private final HistoryManager historyManager = Managers.getDefaultHistory();
 
     Epic epic;
 
@@ -37,17 +47,23 @@ public class TaskManager implements ITaskManager {
 
     @Override
     public Task getTask(int id) {
-        return tasks.get(id);
+        final Task task = tasks.get(id);
+        historyManager.addTask(task);
+        return task;
     }
 
     @Override
     public SubTask getSubTask(int id) {
-        return subTasks.get(id);
+        final SubTask subTask = subTasks.get(id);
+        historyManager.addTask(subTask);
+        return subTask;
     }
 
     @Override
     public Epic getEpic(int id) {
-        return epics.get(id);
+        final Epic epic = epics.get(id);
+        historyManager.addTask(epic);
+        return epic;
     }
 
     @Override
@@ -112,23 +128,23 @@ public class TaskManager implements ITaskManager {
     }
 
     private void updateEpicStatus(Epic epicItem) {
-        Set<String> status = new HashSet<>();
+        Set<TaskStatus> status = new HashSet<>();
         if(epicItem.getSubTaskIds().isEmpty()) {
-            epicItem.setStatus("NEW");
+            epicItem.setStatus(NEW);
             return;
         }
         for(Integer id : epicItem.getSubTaskIds()) {
             status.add(subTasks.get(id).getStatus());
         }
-        if (status.size() == 1 && status.contains("NEW")) {
-            epicItem.setStatus("NEW");
+        if (status.size() == 1 && status.contains(NEW)) {
+            epicItem.setStatus(NEW);
             return;
         }
-        if (status.size() == 1 && status.contains("DONE")) {
-            epicItem.setStatus("DONE");
+        if (status.size() == 1 && status.contains(DONE)) {
+            epicItem.setStatus(DONE);
             return;
         } else {
-            epicItem.setStatus("IN_PROGRESS");
+            epicItem.setStatus(IN_PROGRESS);
         }
     }
 
@@ -188,5 +204,9 @@ public class TaskManager implements ITaskManager {
             item.removeSubTasksIds();
             updateEpicStatus(item);
         }
+    }
+    @Override
+    public List<Task> getHistory() {
+        return historyManager.getHistory();
     }
 }
