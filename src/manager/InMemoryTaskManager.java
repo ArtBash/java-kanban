@@ -164,7 +164,7 @@ public class InMemoryTaskManager implements TaskManager {
             System.out.println("No subtask with id: " + itemId);
             return false;
         } else {
-            SubTask sub = getSubTask(itemId);
+            SubTask sub = subTasks.get(itemId);
             Epic epic = epics.get(sub.getEpicId());
             epic.removeSubTaskId(itemId);
             updateEpicStatus(epic);
