@@ -9,13 +9,13 @@ import java.util.List;
 
 public interface TaskManager {
 
-    ArrayList<Task> getTasks();
+    List<Task> getTasks();
 
-    ArrayList<SubTask> getSubTasks();
+    List<SubTask> getSubTasks();
 
-    ArrayList<Epic> getEpics();
+    List<Epic> getEpics();
 
-    ArrayList<SubTask> getEpicSubTasks(Epic epic);
+    List<SubTask> getEpicSubTasks(Epic epic);
 
     Task getTask(int id);
 

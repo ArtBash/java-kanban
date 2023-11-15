@@ -10,13 +10,12 @@ import java.util.*;
 import static tasks.TaskStatus.*;
 
 public class InMemoryTaskManager implements TaskManager {
-    HashMap<Integer, Task> tasks = new HashMap<>();
-    HashMap<Integer, SubTask> subTasks = new HashMap<>();
-    HashMap<Integer, Epic> epics = new HashMap<>();
+    private Map<Integer, Task> tasks = new HashMap<>();
+    private Map<Integer, SubTask> subTasks = new HashMap<>();
+    private Map<Integer, Epic> epics = new HashMap<>();
     private int generatorId = 0;
     private final HistoryManager historyManager = Managers.getDefaultHistory();
 
-    Epic epic;
 
     @Override
     public ArrayList<Task> getTasks() {
@@ -160,22 +159,25 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public boolean deleteSubTask(int id) {
-        Integer itemId = id;
-        if ((subTasks.remove(itemId)).equals(null)) {
+        Integer itemId = Integer.valueOf(id);
+        if ((subTasks.containsKey(itemId))) {
             System.out.println("No subtask with id: " + itemId);
             return false;
         } else {
+            SubTask sub = getSubTask(itemId);
+            Epic epic = epics.get(sub.getEpicId());
             epic.removeSubTaskId(itemId);
-            updateEpicStatus(epics.get(itemId));
+            updateEpicStatus(epic);
+            subTasks.remove(itemId);
             return true;
         }
     }
 
     @Override
     public boolean deleteEpic(int id) {
-        Integer itemId = id;
-        final Epic epic = epics.get(Integer.valueOf(id));
-        if(epics.remove(itemId).equals(null)) {
+        Integer itemId = Integer.valueOf(id);
+        final Epic epic = epics.get(itemId);
+        if(epic == null) {
             System.out.println("No epic with id: " + itemId);
             return false;
         } else {
