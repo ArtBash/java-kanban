@@ -153,6 +153,7 @@ public class InMemoryTaskManager implements TaskManager {
         if(tasks.remove(itemId).equals(null)) {
             return false;
         } else {
+            historyManager.remove(id);
             return true;
         }
     }
@@ -169,6 +170,7 @@ public class InMemoryTaskManager implements TaskManager {
             epic.removeSubTaskId(itemId);
             updateEpicStatus(epic);
             subTasks.remove(itemId);
+            historyManager.remove(id);
             return true;
         }
     }
@@ -185,6 +187,7 @@ public class InMemoryTaskManager implements TaskManager {
                 subTasks.remove(epicsSubTask);
             }
             epics.remove(itemId);
+            historyManager.remove(id);
             return true;
         }
     }
