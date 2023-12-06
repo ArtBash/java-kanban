@@ -1,6 +1,7 @@
 package tasks;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public class Epic extends Task {
 
@@ -33,9 +34,12 @@ public class Epic extends Task {
     }
 
     public void removeSubTaskId(int id) {
-        for(Integer item : subTaskIds) {
-            if(item.equals(id)) {
-                subTaskIds.remove(item);
+        Integer itemId = Integer.valueOf(id);
+        Iterator<Integer> it = subTaskIds.iterator();
+        while(it.hasNext()) {
+            Integer subtaskId = it.next();
+            if(subtaskId.equals(itemId)) {
+                it.remove();
             }
         }
     }
