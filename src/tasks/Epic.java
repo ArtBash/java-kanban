@@ -3,9 +3,12 @@ package tasks;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import static tasks.TaskType.EPIC;
+
 public class Epic extends Task {
 
     private ArrayList<Integer> subTaskIds = new ArrayList<>();
+    TaskType type = EPIC;
 
     public Epic(String name, String description, int id, TaskStatus status) {
         super(name, description, status, id);
@@ -46,6 +49,11 @@ public class Epic extends Task {
 
     public void removeSubTasksIds() {
         subTaskIds.clear();
+    }
+
+    @Override
+    public TaskType getType(){
+        return type;
     }
 
     @Override

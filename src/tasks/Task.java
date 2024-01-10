@@ -2,11 +2,14 @@ package tasks;
 
 import java.util.Objects;
 
+import static tasks.TaskType.TASK;
+
 public class Task {
     protected String name;
     protected String description;
     protected int id;
     protected TaskStatus status;
+    protected TaskType type = TASK;
 
     public Task(String name, String description, TaskStatus status, int id) {
         this.name = name;
@@ -19,6 +22,10 @@ public class Task {
         this.name = name;
         this.description = description;
         this.status = status;
+    }
+
+    public TaskType getType() {
+        return type;
     }
 
     public boolean isEpic() {

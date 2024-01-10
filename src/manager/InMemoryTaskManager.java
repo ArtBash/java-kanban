@@ -10,11 +10,11 @@ import java.util.*;
 import static tasks.TaskStatus.*;
 
 public class InMemoryTaskManager implements TaskManager {
-    private Map<Integer, Task> tasks = new HashMap<>();
-    private Map<Integer, SubTask> subTasks = new HashMap<>();
-    private Map<Integer, Epic> epics = new HashMap<>();
+    protected Map<Integer, Task> tasks = new HashMap<>();
+    protected Map<Integer, SubTask> subTasks = new HashMap<>();
+    protected Map<Integer, Epic> epics = new HashMap<>();
     private int generatorId = 0;
-    private final HistoryManager historyManager = Managers.getDefaultHistory();
+    protected final HistoryManager historyManager = Managers.getDefaultHistory();
 
 
     @Override
@@ -126,7 +126,7 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
-    private void updateEpicStatus(Epic epicItem) {
+    protected void updateEpicStatus(Epic epicItem) {
         Set<TaskStatus> status = new HashSet<>();
         if(epicItem.getSubTaskIds().isEmpty()) {
             epicItem.setStatus(NEW);
@@ -216,4 +216,22 @@ public class InMemoryTaskManager implements TaskManager {
     public List<Task> getHistory() {
         return historyManager.getHistory();
     }
+
+    public Task getTaskById(int id) {
+        if(tasks.containsKey(id)) {
+            return tasks.get(id);
+        } else if (subTasks.containsKey(id)) {
+            return subTasks.get(id);
+        } else if (epics.containsKey(id)) {
+            return epics.get(id);
+        } else {
+            System.out.println("Заданий с данным Id не найдено.");
+            return null;
+        }
+    }
+
+    protected void restoreId(int id) {
+        this.generatorId = id;
+    }
+
 }
