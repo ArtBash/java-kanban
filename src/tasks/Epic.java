@@ -56,6 +56,10 @@ public class Epic extends Task {
         return type;
     }
 
+    public void restoreSubTaskIds(Integer id) {
+        subTaskIds.add(id);
+    }
+
     @Override
     public String toString() {
         return "tasks.Epic{" +

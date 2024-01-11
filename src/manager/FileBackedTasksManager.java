@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 
 import static tasks.TaskStatus.NEW;
 import static tasks.TaskType.*;
@@ -24,7 +25,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         this.file = file;
     }
 
-    public static void main(String[] args) throws IOException, ManagerSaveException {
+    public static void main(String[] args) throws IOException {
         Path writeFilePath = Paths.get("C:\\Users\\art\\dev\\first-project\\java-kanban\\src\\resources\\file.txt");
             Path createdFile = Files.createFile(writeFilePath);
             File file = new File(String.valueOf(createdFile));
@@ -72,6 +73,16 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         for(Task item : restoredManager.getHistory()) {
             System.out.print(item.getId() + ",");
         }
+        System.out.println("\n");
+
+        System.out.println("--------print subTaskIds arrays (if any)------------");
+        for(Map.Entry<Integer, Epic> item : restoredManager.epics.entrySet()) {
+            System.out.println(item.getValue().getName() + ", " + item.getValue().getId());
+            for(Integer id : item.getValue().getSubTaskIds()) {
+                System.out.println(id);
+            }
+
+        }
     }
 
     public static void printAllTasks(FileBackedTasksManager manager) {
@@ -86,7 +97,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         }
     }
 
-    public static FileBackedTasksManager loadFromFile(File file) throws ManagerSaveException {
+    public static FileBackedTasksManager loadFromFile(File file) {
         FileBackedTasksManager manager = new FileBackedTasksManager(file);
         int latestId = 0;
         try(BufferedReader br = new BufferedReader(new FileReader(manager.file))) {
@@ -95,11 +106,11 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
                 String line = br.readLine();
                 if(line.isBlank()) {
                     String historyLine = br.readLine();
-                    addHistory(taskFormat.historyFromString(historyLine));
+                    manager.addHistory(taskFormat.historyFromString(historyLine));
                     break;
                 }
                 Task task = taskFormat.taskFromString(line);
-                addTask(task, task.getId());
+                manager.addTask(task, task.getId());
 
                 if(task.getId() > latestId) {
                     latestId = task.getId();
@@ -108,13 +119,18 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 
             manager.restoreId(latestId);
 
+            for(Map.Entry<Integer, SubTask> subTask : manager.subTasks.entrySet()) {
+                Integer epicId = subTask.getValue().getEpicId();
+                manager.epics.get(epicId).restoreSubTaskIds(subTask.getValue().getId());
+            }
+
         } catch (IOException e) {
             throw new ManagerSaveException("Cannot read the file.");
         }
         return manager;
     }
 
-    private static void addTask(Task task, int id) {
+    private void addTask(Task task, int id) {
         Integer taskId = id;
         TaskType type = task.getType();
 
@@ -127,7 +143,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         }
     }
 
-    private static void addHistory(List<Integer> historyIds) {
+    private void addHistory(List<Integer> historyIds) {
         for(Integer id : historyIds) {
              historyManager.add(getTaskById(id));
         }
@@ -148,11 +164,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
             writer.write("\n");
             writer.write(taskFormat.historyToString(historyManager));
         } catch(IOException e) {
-            try {
-                throw new ManagerSaveException("Impossile to write to the file");
-            } catch (ManagerSaveException ex) {
-                throw new RuntimeException(ex);
-            }
+                throw new ManagerSaveException("Impossible to write to the file");
         }
     }
 
