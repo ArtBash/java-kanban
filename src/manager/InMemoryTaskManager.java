@@ -10,11 +10,11 @@ import java.util.*;
 import static tasks.TaskStatus.*;
 
 public class InMemoryTaskManager implements TaskManager {
-    protected Map<Integer, Task> tasks = new HashMap<>();
-    protected Map<Integer, SubTask> subTasks = new HashMap<>();
-    protected Map<Integer, Epic> epics = new HashMap<>();
+    protected static Map<Integer, Task> tasks = new HashMap<>();
+    protected static Map<Integer, SubTask> subTasks = new HashMap<>();
+    protected static Map<Integer, Epic> epics = new HashMap<>();
     private int generatorId = 0;
-    protected final HistoryManager historyManager = Managers.getDefaultHistory();
+    protected final static HistoryManager historyManager = Managers.getDefaultHistory();
 
 
     @Override
@@ -193,6 +193,7 @@ public class InMemoryTaskManager implements TaskManager {
             return true;
         }
     }
+
     @Override
     public void removeAllTasks() {
         tasks.clear();
@@ -217,7 +218,7 @@ public class InMemoryTaskManager implements TaskManager {
         return historyManager.getHistory();
     }
 
-    public Task getTaskById(int id) {
+    protected static Task getTaskById(int id) {
         if(tasks.containsKey(id)) {
             return tasks.get(id);
         } else if (subTasks.containsKey(id)) {

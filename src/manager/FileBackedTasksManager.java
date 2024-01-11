@@ -1,5 +1,6 @@
 package manager;
 
+import exceptions.ManagerSaveException;
 import tasks.Epic;
 import tasks.SubTask;
 import tasks.Task;
@@ -17,13 +18,13 @@ import static tasks.TaskType.*;
 public class FileBackedTasksManager extends InMemoryTaskManager {
 
     private final File file;
-    CSVTaskFormat taskFormat = new CSVTaskFormat();
+    private final static CSVTaskFormat taskFormat = new CSVTaskFormat();
 
     public FileBackedTasksManager(File file) {
         this.file = file;
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, ManagerSaveException {
         Path writeFilePath = Paths.get("C:\\Users\\art\\dev\\first-project\\java-kanban\\src\\resources\\file.txt");
             Path createdFile = Files.createFile(writeFilePath);
             File file = new File(String.valueOf(createdFile));
@@ -57,7 +58,8 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         System.out.println("first print is over");
 
         FileBackedTasksManager restoredManager = new FileBackedTasksManager(file);
-        restoredManager.loadFromFile(restoredManager);
+        restoredManager = loadFromFile(restoredManager.file);
+
 
         printAllTasks(restoredManager);
         System.out.println("restored tasks printed");
@@ -84,35 +86,35 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         }
     }
 
-    public FileBackedTasksManager loadFromFile(FileBackedTasksManager manager) {
+    public static FileBackedTasksManager loadFromFile(File file) throws ManagerSaveException {
+        FileBackedTasksManager manager = new FileBackedTasksManager(file);
         int latestId = 0;
         try(BufferedReader br = new BufferedReader(new FileReader(manager.file))) {
             br.readLine();
             while(br.ready()) {
                 String line = br.readLine();
                 if(line.isBlank()) {
+                    String historyLine = br.readLine();
+                    addHistory(taskFormat.historyFromString(historyLine));
                     break;
                 }
                 Task task = taskFormat.taskFromString(line);
                 addTask(task, task.getId());
 
-               if(task.getId() > latestId) {
-                   latestId = task.getId();
+                if(task.getId() > latestId) {
+                    latestId = task.getId();
                 }
             }
+
             manager.restoreId(latestId);
 
-            while(br.ready()) {
-                String line = br.readLine();
-                addHistory(taskFormat.historyFromString(line));
-            }
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new ManagerSaveException("Cannot read the file.");
         }
         return manager;
     }
 
-    private void addTask(Task task, int id) {
+    private static void addTask(Task task, int id) {
         Integer taskId = id;
         TaskType type = task.getType();
 
@@ -125,13 +127,13 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         }
     }
 
-    private void addHistory(List<Integer> historyIds) {
+    private static void addHistory(List<Integer> historyIds) {
         for(Integer id : historyIds) {
              historyManager.add(getTaskById(id));
         }
     }
 
-    public void save() {
+    private void save() {
         try(BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
             writer.write("id,type,name,status,description,epicId\n");
             for(Task task : getTasks()) {
@@ -146,13 +148,13 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
             writer.write("\n");
             writer.write(taskFormat.historyToString(historyManager));
         } catch(IOException e) {
-            e.printStackTrace();
+            try {
+                throw new ManagerSaveException("Impossile to write to the file");
+            } catch (ManagerSaveException ex) {
+                throw new RuntimeException(ex);
+            }
         }
     }
-
-
-
-
 
     @Override
     public Task getTask(int id) {
@@ -232,6 +234,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
     @Override
     public boolean deleteEpic(int id) {
         boolean isDeleted = super.deleteEpic(id);
+        save();
         return isDeleted;
     }
 
