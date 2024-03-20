@@ -102,6 +102,10 @@ public class InMemoryTaskManager implements TaskManager {
         tasks.replace(task.getId(), task);
     }
 
+    /**
+    При обновлении эпика не обновляются его сабтаски. Недоработка?
+     */
+
     @Override
     public void updateEpic(Epic epic) {
         if(epics.containsKey(epic.getId())) {
@@ -234,5 +238,4 @@ public class InMemoryTaskManager implements TaskManager {
     protected void restoreId(int id) {
         this.generatorId = id;
     }
-
 }
