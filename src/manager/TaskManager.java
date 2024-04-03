@@ -3,8 +3,6 @@ package manager;
 import tasks.Epic;
 import tasks.SubTask;
 import tasks.Task;
-
-import java.util.ArrayList;
 import java.util.List;
 
 public interface TaskManager {
@@ -45,5 +43,8 @@ public interface TaskManager {
     void removeAllSubTasks();
 
     List<Task> getHistory();
+
+    void calculateEpicTimeAndDuration(Epic epic);
+    boolean isValid(Task task);
 
 }

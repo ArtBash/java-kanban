@@ -1,11 +1,11 @@
 package manager;
 
-import tasks.Epic;
-import tasks.SubTask;
-import tasks.Task;
-import tasks.TaskStatus;
+import tasks.*;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static tasks.TaskStatus.*;
 
@@ -15,6 +15,7 @@ public class InMemoryTaskManager implements TaskManager {
     protected Map<Integer, Epic> epics = new HashMap<>();
     private int generatorId = 0;
     protected final HistoryManager historyManager = Managers.getDefaultHistory();
+    TreeMap<LocalDateTime, Task> prioritizedTasks = new TreeMap<>();
 
 
     @Override
@@ -37,11 +38,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public ArrayList<SubTask> getEpicSubTasks(Epic epic) {
-        ArrayList<SubTask> subtaskList = new ArrayList<>();
-        for(Integer id : epic.getSubTaskIds()) {
-            subtaskList.add(subTasks.get(id));
-        }
-        return subtaskList;
+        return new ArrayList<>(epic.getSubTaskIds().stream().map(subTasks::get).collect(Collectors.toList()));
     }
 
     @Override
@@ -67,9 +64,13 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public int addNewTask(Task task) {
-        final int id = ++generatorId;
-        task.setId(id);
-        tasks.put(id, task);
+        int id = 0;
+        if(isValid(task)) {
+            id = ++generatorId;
+            task.setId(id);
+            prioritizeAndUpdateTasks(task);
+            tasks.put(id, task);
+        }
         return id;
     }
 
@@ -89,22 +90,27 @@ public class InMemoryTaskManager implements TaskManager {
             System.out.println("no such epic: " + subTask.getEpicId());
             return -1;
         }
-        final int id = ++generatorId;
-        subTask.setId(id);
-        epic.addSubTaskId(id);
-        subTasks.put(id, subTask);
-        updateEpicStatus(epic);
+        int id = 0;
+
+        if(isValid(subTask)) {
+            id = ++generatorId;
+            subTask.setId(id);
+            epic.addSubTaskId(id);
+            subTasks.put(id, subTask);
+            updateEpicStatus(epic);
+            calculateEpicTimeAndDuration(epic);
+            prioritizeAndUpdateTasks(subTask);
+        }
         return id;
     }
 
     @Override
     public void updateTask(Task task) {
-        tasks.replace(task.getId(), task);
+        if(isValid(task)) {
+            tasks.replace(task.getId(), task);
+            prioritizeAndUpdateTasks(task);
+        }
     }
-
-    /**
-    При обновлении эпика не обновляются его сабтаски. Недоработка?
-     */
 
     @Override
     public void updateEpic(Epic epic) {
@@ -120,10 +126,12 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void updateSubTask(SubTask subTask) {
         Integer id = subTask.getId();
-        if(subTasks.containsKey(id)) {
+        if(subTasks.containsKey(id) && isValid(subTask)) {
             if(subTask.getEpicId() == subTasks.get(id).getEpicId()) {
                 subTasks.replace(id, subTask);
                 updateEpicStatus(epics.get(subTask.getEpicId()));
+                calculateEpicTimeAndDuration(epics.get(subTask.getEpicId()));
+                prioritizeAndUpdateTasks(subTask);
             }
         } else {
             System.out.println("No subtask with such id");
@@ -151,6 +159,15 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
+    protected void prioritizeAndUpdateTasks(Task task) {
+            if(!prioritizedTasks.containsValue(task)) {
+                prioritizedTasks.put(task.getStartTime(), task);
+            } else if(prioritizedTasks.containsValue(task) && !prioritizedTasks.containsKey(task.getStartTime())) {
+                prioritizedTasks.remove(task);
+                prioritizedTasks.put(task.getStartTime(), task);
+            }
+    }
+
     @Override
     public boolean deleteTask(int id) {
         Integer itemId = id;
@@ -173,6 +190,7 @@ public class InMemoryTaskManager implements TaskManager {
             Epic epic = epics.get(sub.getEpicId());
             epic.removeSubTaskId(itemId);
             updateEpicStatus(epic);
+            calculateEpicTimeAndDuration(epic);
             subTasks.remove(itemId);
             historyManager.remove(id);
             return true;
@@ -237,5 +255,47 @@ public class InMemoryTaskManager implements TaskManager {
 
     protected void restoreId(int id) {
         this.generatorId = id;
+    }
+    @Override
+    public boolean isValid(Task task) {
+        boolean result = false;
+        if (prioritizedTasks.isEmpty()) {
+            prioritizedTasks.put(task.getStartTime(), task);
+            result = true;
+        } else {
+            for (Task value: prioritizedTasks.values()) {
+                if (value.getStartTime().isAfter(task.getEndTime()) ||
+                        task.getStartTime().isAfter(value.getEndTime()) ||
+                            task.getStartTime().equals(value.getEndTime()) ||
+                                value.getStartTime().equals(task.getEndTime())) {
+                    result = true;
+                } else {
+                    result = false;
+                }
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public void calculateEpicTimeAndDuration(Epic epic) {
+        ArrayList<Integer> subTaskIds = epic.getSubTaskIds();
+        LocalDateTime startTime = null;
+        LocalDateTime endTime = null;
+        Duration duration = Duration.ofMinutes(0);
+
+        for (Integer id : subTaskIds) {
+            SubTask subTask = subTasks.get(id);
+            if (startTime == null || startTime.isAfter(subTask.getStartTime())) {
+                startTime = subTask.getStartTime();
+            }
+            if (endTime == null || endTime.isBefore(subTask.getEndTime())) {
+                endTime = subTask.getEndTime();
+            }
+            duration = duration.plus(subTask.getDuration());
+        }
+        epic.setStartTime(startTime);
+        epic.setEndTime(endTime);
+        epic.setDuration(duration);
     }
 }
