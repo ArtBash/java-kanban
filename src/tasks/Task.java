@@ -1,7 +1,6 @@
 package tasks;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -27,8 +26,18 @@ public class Task {
         this.endTime = calculateEndTime(startTime, duration);
     }
 
+    public Task(String name, String description, TaskStatus status) {
+        this.name = name;
+        this.description = description;
+        this.status = status;
+    }
+
     public LocalDateTime calculateEndTime(LocalDateTime startTime, Duration duration) {
-        return startTime.plus(duration);
+        LocalDateTime result = null;
+        if(!startTime.equals(null) && !duration.equals(null)) {
+            result = startTime.plus(duration);
+        }
+        return result;
     }
 
     public LocalDateTime getEndTime() {
