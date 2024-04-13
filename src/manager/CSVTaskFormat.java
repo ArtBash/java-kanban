@@ -2,8 +2,10 @@ package manager;
 
 import tasks.*;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static tasks.TaskType.*;
@@ -18,11 +20,16 @@ public class CSVTaskFormat {
      */
 
 
-    public static String toString(Task task) {
-            return task.getId() + "," + task.getType() + "," + task.getName() + "," + task.getStatus() + "," + task.getDescription() + "," +
-                    (task instanceof SubTask ? ((SubTask) task).getEpicId() : "") + "\n";
-    }
+    private final static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yy.MM.dd|HH:mm");
 
+    public static String toString(Task task) {
+            return task.getId() + "," + task.getType() + "," + task.getName() + "," + task.getStatus() + "," + task.getDescription() + ","
+                    + (task instanceof SubTask ? ((SubTask) task).getEpicId() : "null") + ","
+                    + task.getStartTime().format(formatter) + ","
+                    + task.getDuration().toMinutes() + ","
+                    + "min. "
+                    + "\n";
+    }
 
     public static Task taskFromString(String value) {
         final String[] values = value.split(",");
@@ -31,17 +38,22 @@ public class CSVTaskFormat {
         final String name = values[2];
         final TaskStatus status = TaskStatus.valueOf(values[3]);
         final String description = values[4];
+        final LocalDateTime startTime = LocalDateTime.parse(values[6], formatter);
+        final Duration duration = Duration.ofMinutes(Long.parseLong(values[7]));
         Task task = null;
         if(type.equals(SUBTASK)) {
             final Integer epicId = Integer.parseInt(values[5]);
-             task = new SubTask(name, description, id, status, epicId);
-
+             task = new SubTask(name, description, status, epicId, startTime, duration);
+             task.setId(id);
         } else if (type.equals(EPIC)) {
-            task = new Epic(name, description, id, status);
-        } else if (type.equals(TASK)) {
-            task = new Task(name, description, status, id);
-        }
+            task = new Epic(name, description, status, startTime, duration);
+            task.setId(id);
 
+        } else if (type.equals(TASK)) {
+            task = new Task(name, description, status, startTime, duration);
+
+            task.setId(id);
+        }
         return task;
     }
 

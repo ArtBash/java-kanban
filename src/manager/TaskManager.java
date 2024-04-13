@@ -4,8 +4,9 @@ import tasks.Epic;
 import tasks.SubTask;
 import tasks.Task;
 
-import java.util.ArrayList;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.TreeMap;
 
 public interface TaskManager {
 
@@ -46,4 +47,6 @@ public interface TaskManager {
 
     List<Task> getHistory();
 
+    void calculateEpicTimeAndDuration(Epic epic);
+    TreeMap<LocalDateTime, Task> getPrioritizedTasks();
 }

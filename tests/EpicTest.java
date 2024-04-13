@@ -4,6 +4,11 @@ import org.junit.jupiter.api.Test;
 import tasks.Epic;
 import tasks.SubTask;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static tasks.TaskStatus.*;
 
@@ -16,16 +21,16 @@ class EpicTest {
 
     @BeforeEach
     public void create() {
-        epic1 = new Epic("TestEpic1", "TestEpic1 description", NEW);
+        epic1 = new Epic("TestEpic1", "TestEpic1 description", NEW, LocalDateTime.now(), Duration.ofMinutes(0));
         inMemoryTaskManager.addNewEpic(epic1);
-        subTask1 = new SubTask("Subtask1", "Subtask1 description", NEW, epic1.getId());
+        subTask1 = new SubTask("Subtask1", "Subtask1 description", NEW, epic1.getId(), LocalDateTime.of(2024, 03, 22, 12,30), Duration.ofMinutes(30));
         inMemoryTaskManager.addNewSubTask(subTask1);
-        subTask2 = new SubTask("Subtask2", "Subtask2 description", NEW, epic1.getId());
+        subTask2 = new SubTask("Subtask2", "Subtask2 description", NEW, epic1.getId(), LocalDateTime.of(2024, 03, 23, 12,30), Duration.ofMinutes(30));
         inMemoryTaskManager.addNewSubTask(subTask2);
     }
 
     @Test
-    void getEpicsStandart() {
+    void getEpicsStandard() {
         assertEquals(1, inMemoryTaskManager.getEpics().size());
     }
 
@@ -82,9 +87,9 @@ class EpicTest {
 
     @Test
     public void whenAllSubDoneThanStatusDone() {
-        SubTask newSubTask1 = new SubTask("Subtask1 upd", "Subtask1 description upd", DONE, epic1.getId());
+        SubTask newSubTask1 = new SubTask("Subtask1 upd", "Subtask1 description upd", DONE, epic1.getId(), LocalDateTime.of(2024, 03, 24, 12,30), Duration.ofMinutes(30));
         newSubTask1.setId(subTask1.getId());
-        SubTask newSubTask2 = new SubTask("Subtask2 upd", "Subtask2 description upd", DONE, epic1.getId());
+        SubTask newSubTask2 = new SubTask("Subtask2 upd", "Subtask2 description upd", DONE, epic1.getId(), LocalDateTime.of(2024, 03, 25, 12,30), Duration.ofMinutes(30));
         newSubTask2.setId(subTask2.getId());
         inMemoryTaskManager.updateSubTask(newSubTask1);
         inMemoryTaskManager.updateSubTask(newSubTask2);
@@ -93,7 +98,7 @@ class EpicTest {
 
     @Test
     public void whenSubDoneAndNewThanEpicNew() {
-        SubTask newSubTask1 = new SubTask("Subtask1 upd", "Subtask1 description upd", DONE, epic1.getId());
+        SubTask newSubTask1 = new SubTask("Subtask1 upd", "Subtask1 description upd", DONE, epic1.getId(), LocalDateTime.of(2024, 03, 26, 12,30), Duration.ofMinutes(30));
         newSubTask1.setId(subTask1.getId());
         inMemoryTaskManager.updateSubTask(newSubTask1);
         assertEquals(epic1.getStatus(), IN_PROGRESS, "Статус не равен IN_PROGRESS");
@@ -101,9 +106,9 @@ class EpicTest {
 
     @Test
     public void whenSubsInProgressThanEpicInProgress() {
-        SubTask newSubTask1 = new SubTask("Subtask1 upd", "Subtask1 description upd", IN_PROGRESS, epic1.getId());
+        SubTask newSubTask1 = new SubTask("Subtask1 upd", "Subtask1 description upd", IN_PROGRESS, epic1.getId(), LocalDateTime.of(2024, 03, 27, 12,30), Duration.ofMinutes(30));
         newSubTask1.setId(subTask1.getId());
-        SubTask newSubTask2 = new SubTask("Subtask2 upd", "Subtask2 description upd", IN_PROGRESS, epic1.getId());
+        SubTask newSubTask2 = new SubTask("Subtask2 upd", "Subtask2 description upd", IN_PROGRESS, epic1.getId(), LocalDateTime.of(2024, 03, 28, 12,30), Duration.ofMinutes(30));
         newSubTask2.setId(subTask2.getId());
         inMemoryTaskManager.updateSubTask(newSubTask1);
         inMemoryTaskManager.updateSubTask(newSubTask2);
@@ -112,7 +117,8 @@ class EpicTest {
 
     @Test
     void updateEpicStandard() {
-        Epic epic = new Epic("TestEpic1 updated", "TestEpic1 updatedDescription", epic1.getId(), NEW);
+        Epic epic = new Epic("TestEpic1 updated", "TestEpic1 updatedDescription", NEW, LocalDateTime.now(), Duration.ofMinutes(0));
+        epic.setId(epic1.getId());
         inMemoryTaskManager.updateEpic(epic);
         assertEquals("TestEpic1 updated", inMemoryTaskManager.getEpic(epic.getId()).getName());
     }
@@ -120,7 +126,8 @@ class EpicTest {
     @Test
     void updateEpicEmpty() {
         inMemoryTaskManager.deleteEpic(epic1.getId());
-        Epic epic = new Epic("TestEpic1 updated", "TestEpic1 updatedDescription", epic1.getId(), NEW);
+        Epic epic = new Epic("TestEpic1 updated", "TestEpic1 updatedDescription", NEW, LocalDateTime.now(), Duration.ofMinutes(0));
+        epic.setId(epic1.getId());
         inMemoryTaskManager.updateEpic(epic);
         assertThrows(NullPointerException.class, () -> inMemoryTaskManager.getEpic(epic.getId()).getName());
     }
@@ -128,7 +135,8 @@ class EpicTest {
     @Test
     void updateEpicWrong() {
         int wrongId = 28;
-        Epic epic = new Epic("TestEpic1 updated", "TestEpic1 updatedDescription", wrongId, NEW);
+        Epic epic = new Epic("TestEpic1 updated", "TestEpic1 updatedDescription", NEW, LocalDateTime.now(), Duration.ofMinutes(0));
+        epic.setId(wrongId);
         inMemoryTaskManager.updateEpic(epic);
         assertThrows(NullPointerException.class, () -> inMemoryTaskManager.getEpic(epic.getId()).getName());
     }
@@ -145,5 +153,12 @@ class EpicTest {
     void removeAllEpics() {
         inMemoryTaskManager.removeAllEpics();
         assertEquals(true, inMemoryTaskManager.getEpics().isEmpty());
+    }
+
+    @Test
+    void epicsDurationIsAllSubtasksDuration() {
+        SubTask subTask01 = new SubTask("Subtask1", "Subtask1 description", NEW, epic1.getId(), LocalDateTime.of(2024, 03, 22, 12,30), Duration.ofMinutes(15));
+        inMemoryTaskManager.addNewSubTask(subTask01);
+        assertEquals(Duration.of(75, ChronoUnit.MINUTES ), epic1.getDuration());
     }
 }
