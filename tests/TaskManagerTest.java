@@ -94,8 +94,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void updateTaskEmpty(){
-        manager.updateTask(task1);
-        assertThrows(NullPointerException.class, () -> manager.getTask(task1.getId()));
+        assertThrows(NullPointerException.class, () -> manager.updateTask(task1));
     }
 
     @Test
@@ -104,8 +103,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         int wrongId = 28;
         Task replaceTask = new Task("ReplaceTaskName", "ReplaceTaskDescription", IN_PROGRESS, LocalDateTime.of(2024, 04, 23, 12,30), Duration.ofMinutes(30));
         replaceTask.setId(wrongId);
-        manager.updateTask(replaceTask);
-        assertEquals(task1, manager.getTask(task1.getId()));
+        assertThrows(NullPointerException.class,() -> manager.updateTask(replaceTask));
     }
 
     @Test

@@ -34,7 +34,7 @@ public class Task {
 
     public LocalDateTime calculateEndTime(LocalDateTime startTime, Duration duration) {
         LocalDateTime result = null;
-        if(!startTime.equals(null) && !duration.equals(null)) {
+        if(startTime != null && duration != null) {
             result = startTime.plus(duration);
         }
         return result;
