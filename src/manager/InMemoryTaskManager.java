@@ -107,8 +107,8 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void updateTask(Task task) {
         Task oldTask = tasks.get(task.getId());
-        prioritizedTasks.remove(oldTask.getStartTime());
         if(isValid(task)) {
+            prioritizedTasks.remove(oldTask.getStartTime());
             tasks.replace(task.getId(), task);
             prioritizedTasks.put(task.getStartTime(), task);
         }
@@ -129,9 +129,9 @@ public class InMemoryTaskManager implements TaskManager {
     public void updateSubTask(SubTask subTask) {
         Integer id = subTask.getId();
         if(subTasks.containsKey(id)) {
-            prioritizedTasks.remove(subTasks.get(id).getStartTime());
             if(subTask.getEpicId() == subTasks.get(id).getEpicId()) {
                 if(isValid(subTask)) {
+                    prioritizedTasks.remove(subTasks.get(id).getStartTime());
                     subTasks.replace(id, subTask);
                     updateEpicStatus(epics.get(subTask.getEpicId()));
                     calculateEpicTimeAndDuration(epics.get(subTask.getEpicId()));
@@ -288,12 +288,8 @@ public class InMemoryTaskManager implements TaskManager {
                         result = false;
                     }
                 } else {
-                    if (value.getStartTime().isAfter(task.getEndTime()) ||
-                            task.getStartTime().isAfter(value.getEndTime())) {
                         result = true;
-                    } else {
-                        result = false;
-                    }
+                        result = true;
                 }
             }
         }
